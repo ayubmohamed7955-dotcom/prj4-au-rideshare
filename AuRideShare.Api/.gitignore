@@ -1,0 +1,15 @@
+## .NET build outputs
+bin/
+obj/
+
+## VS Code (behold .vscode hvis I vil dele launch.json/tasks.json med gruppen,
+## fjern linjen nedenfor hvis I hellere vil ignorere hele mappen)
+# .vscode/
+
+## Visual Studio
+.vs/
+*.user
+
+## OS-specifikke filer
+.DS_Store
+Thumbs.db

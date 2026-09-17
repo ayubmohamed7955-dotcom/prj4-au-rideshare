@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ayub M\\AuRideShare.Api\\AuRideShare.Api.csproj": {}
+    "C:\\Users\\Ayub M\\prj4-au-rideshare\\AuRideShare.Api\\AuRideShare.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ayub M\\AuRideShare.Api\\AuRideShare.Api.csproj": {
+    "C:\\Users\\Ayub M\\prj4-au-rideshare\\AuRideShare.Api\\AuRideShare.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ayub M\\AuRideShare.Api\\AuRideShare.Api.csproj",
+        "projectUniqueName": "C:\\Users\\Ayub M\\prj4-au-rideshare\\AuRideShare.Api\\AuRideShare.Api.csproj",
         "projectName": "AuRideShare.Api",
-        "projectPath": "C:\\Users\\Ayub M\\AuRideShare.Api\\AuRideShare.Api.csproj",
+        "projectPath": "C:\\Users\\Ayub M\\prj4-au-rideshare\\AuRideShare.Api\\AuRideShare.Api.csproj",
         "packagesPath": "C:\\Users\\Ayub M\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ayub M\\AuRideShare.Api\\obj\\",
+        "outputPath": "C:\\Users\\Ayub M\\prj4-au-rideshare\\AuRideShare.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
