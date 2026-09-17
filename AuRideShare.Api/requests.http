@@ -1,0 +1,50 @@
+### AU RideShare API - testkald
+### Kræver "REST Client"-extensionen i VS Code (af Huachao Mao).
+### Klik "Send Request" over hver blok for at afprøve endpointet.
+
+@baseUrl = http://localhost:5000
+
+### Opret bruger
+POST {{baseUrl}}/api/brugere
+Content-Type: application/json
+
+{
+  "navn": "Anna",
+  "email": "anna@au.dk"
+}
+
+### Hent alle brugere
+GET {{baseUrl}}/api/brugere
+
+### Gør bruger 1 til chauffør
+PATCH {{baseUrl}}/api/brugere/1/bliv-chauffoer
+
+### Opret tur (kræver at bruger 1 er chauffør)
+POST {{baseUrl}}/api/ture
+Content-Type: application/json
+
+{
+  "chauffoerId": 1,
+  "startLokation": "Aarhus",
+  "slutLokation": "Aalborg",
+  "afgangsTidspunkt": "2026-09-20T08:00:00",
+  "antalLedigeSaeder": 3
+}
+
+### Hent alle ture
+GET {{baseUrl}}/api/ture
+
+### Book en tur (fx som bruger 2)
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "turId": 1,
+  "passagerId": 2
+}
+
+### Chauffør accepterer booking 1
+PATCH {{baseUrl}}/api/bookings/1/accepter
+
+### Chauffør afviser booking 1
+PATCH {{baseUrl}}/api/bookings/1/afvis
