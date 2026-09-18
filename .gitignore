@@ -13,3 +13,15 @@ obj/
 ## OS-specifikke filer
 .DS_Store
 Thumbs.db
+
+
+
+**/node_modules/
+**/dist/
+**/.vite/
+bin/
+obj/
+.vs/
+*.user
+.DS_Store
+Thumbs.db
