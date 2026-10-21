@@ -1,4 +1,6 @@
 using AuRideShare.Api.Models;
+using AuRideShare.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuRideShare.Api.Services;
 
@@ -21,29 +23,30 @@ public interface IBrugerRepository
 /// stadie. Udskiftes senere med en implementering der bruger
 /// Entity Framework/MongoDB.
 /// </summary>
-public class InMemoryBrugerRepository : IBrugerRepository
+public class EfBrugerRepository : IBrugerRepository
 {
-    private readonly List<Bruger> _brugere = new();
-    private int _naesteId = 1;
+    private readonly RideShareDbContext _db;
 
-    public IEnumerable<Bruger> HentAlle() => _brugere;
+    public EfBrugerRepository(RideShareDbContext db) => _db = db;
 
-    public Bruger? HentPaaId(int id) =>
-        _brugere.FirstOrDefault(b => b.Id == id);
+    public IEnumerable<Bruger> HentAlle() => _db.Brugere.AsNoTracking().ToList();
+
+    public Bruger? HentPaaId(int id) => _db.Brugere.Find(id);
 
     public Bruger Opret(Bruger bruger)
     {
-        bruger.Id = _naesteId++;
-        _brugere.Add(bruger);
+        _db.Brugere.Add(bruger);
+        _db.SaveChanges();
         return bruger;
     }
 
     public bool GoerTilChauffoer(int id)
     {
-        var bruger = HentPaaId(id);
+        var bruger = _db.Brugere.Find(id);
         if (bruger is null) return false;
 
         bruger.ErChauffoer = true;
+        _db.SaveChanges();
         return true;
     }
 }

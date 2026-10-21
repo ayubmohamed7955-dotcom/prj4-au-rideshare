@@ -1,4 +1,6 @@
 using AuRideShare.Api.Models;
+using AuRideShare.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuRideShare.Api.Services;
 
@@ -10,29 +12,30 @@ public interface IBookingRepository
     bool OpdaterStatus(int id, BookingStatus nyStatus);
 }
 
-public class InMemoryBookingRepository : IBookingRepository
+public class EfBookingRepository : IBookingRepository
 {
-    private readonly List<Booking> _bookinger = new();
-    private int _naesteId = 1;
+    private readonly RideShareDbContext _db;
 
-    public IEnumerable<Booking> HentAlle() => _bookinger;
+    public EfBookingRepository(RideShareDbContext db) => _db = db;
 
-    public Booking? HentPaaId(int id) =>
-        _bookinger.FirstOrDefault(b => b.Id == id);
+    public IEnumerable<Booking> HentAlle() => _db.Bookinger.AsNoTracking().ToList();
+
+    public Booking? HentPaaId(int id) => _db.Bookinger.Find(id);
 
     public Booking Opret(Booking booking)
     {
-        booking.Id = _naesteId++;
-        _bookinger.Add(booking);
+        _db.Bookinger.Add(booking);
+        _db.SaveChanges();
         return booking;
     }
 
     public bool OpdaterStatus(int id, BookingStatus nyStatus)
     {
-        var booking = HentPaaId(id);
+        var booking = _db.Bookinger.Find(id);
         if (booking is null) return false;
 
         booking.Status = nyStatus;
+        _db.SaveChanges();
         return true;
     }
 }

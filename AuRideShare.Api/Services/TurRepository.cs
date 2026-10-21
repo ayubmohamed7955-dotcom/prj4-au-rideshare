@@ -1,4 +1,6 @@
 using AuRideShare.Api.Models;
+using AuRideShare.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuRideShare.Api.Services;
 
@@ -10,20 +12,20 @@ public interface ITurRepository
     bool NedsaetLedigeSaeder(int turId);
 }
 
-public class InMemoryTurRepository : ITurRepository
+public class EfTurRepository : ITurRepository
 {
-    private readonly List<Tur> _ture = new();
-    private int _naesteId = 1;
+    private readonly RideShareDbContext _db;
 
-    public IEnumerable<Tur> HentAlle() => _ture;
+    public EfTurRepository(RideShareDbContext db) => _db = db;
 
-    public Tur? HentPaaId(int id) =>
-        _ture.FirstOrDefault(t => t.Id == id);
+    public IEnumerable<Tur> HentAlle() => _db.Ture.AsNoTracking().ToList();
+
+    public Tur? HentPaaId(int id) => _db.Ture.Find(id);
 
     public Tur Opret(Tur tur)
     {
-        tur.Id = _naesteId++;
-        _ture.Add(tur);
+        _db.Ture.Add(tur);
+        _db.SaveChanges();
         return tur;
     }
 
@@ -33,10 +35,11 @@ public class InMemoryTurRepository : ITurRepository
     /// </summary>
     public bool NedsaetLedigeSaeder(int turId)
     {
-        var tur = HentPaaId(turId);
+        var tur = _db.Ture.Find(turId);
         if (tur is null || tur.AntalLedigeSaeder <= 0) return false;
 
         tur.AntalLedigeSaeder--;
+        _db.SaveChanges();
         return true;
     }
 }
