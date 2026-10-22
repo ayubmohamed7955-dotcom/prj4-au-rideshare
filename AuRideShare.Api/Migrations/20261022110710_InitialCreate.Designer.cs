@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuRideShare.Api.Migrations
 {
     [DbContext(typeof(RideShareDbContext))]
-    [Migration("20261022091058_AddAuthentication")]
-    partial class AddAuthentication
+    [Migration("20261022110710_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
