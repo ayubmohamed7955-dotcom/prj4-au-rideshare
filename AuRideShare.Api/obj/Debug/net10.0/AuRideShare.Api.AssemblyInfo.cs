@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AuRideShare.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d00885dce60df25a20f8e367b98e50b5db592b76")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4a4df99683079568a0cdcfd5e9a3a1301e666484")]
 [assembly: System.Reflection.AssemblyProductAttribute("AuRideShare.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AuRideShare.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

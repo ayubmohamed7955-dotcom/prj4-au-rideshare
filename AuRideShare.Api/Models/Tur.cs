@@ -1,9 +1,6 @@
 namespace AuRideShare.Api.Models;
 
-/// <summary>
-/// Repræsenterer en køretur som en chauffør har oprettet, og som
-/// passagerer kan booke sæder på ("Opret tur" / "Betjen tur").
-/// </summary>
+/// En køretur med ledige sæder.
 public class Tur
 {
     public int Id { get; set; }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
-const API_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'
 
 function bookingStatusLabel(status) {
   if (status === 0 || status === 'Afventer') return 'Afventer'
@@ -11,9 +11,11 @@ function bookingStatusLabel(status) {
 }
 
 async function apiRequest(path, options = {}) {
+  const token = localStorage.getItem('rideshareToken')
   const response = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: { 'Content-Type': 'application/json' },
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   })
 
   if (!response.ok) {
@@ -30,6 +32,7 @@ function App() {
   const [bookings, setBookings] = useState([])
   const [currentUserId, setCurrentUserId] = useState('')
   const [userForm, setUserForm] = useState({ navn: '', email: '' })
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [tripForm, setTripForm] = useState({
     startLokation: '',
     slutLokation: '',
@@ -67,10 +70,32 @@ function App() {
         method: 'POST',
         body: JSON.stringify(userForm),
       })
+      await login(userForm.email, userForm.password)
       setUserForm({ navn: '', email: '' })
-      setCurrentUserId(String(user.id))
       setMessage(`Bruger ${user.navn} er oprettet.`)
       await loadData()
+    } catch (requestError) {
+      setError(requestError.message)
+    }
+  }
+
+  async function login(email, password) {
+    const response = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    localStorage.setItem('rideshareToken', response.token)
+    setCurrentUserId(String(response.user.id))
+    setLoginForm({ email: '', password: '' })
+    await loadData()
+  }
+
+  async function submitLogin(event) {
+    event.preventDefault()
+    setError('')
+    try {
+      await login(loginForm.email, loginForm.password)
+      setMessage('Du er logget ind.')
     } catch (requestError) {
       setError(requestError.message)
     }
@@ -169,7 +194,15 @@ function App() {
           <form onSubmit={createUser}>
             <input required placeholder="Navn" value={userForm.navn} onChange={(event) => setUserForm({ ...userForm, navn: event.target.value })} />
             <input required type="email" placeholder="AU-email" value={userForm.email} onChange={(event) => setUserForm({ ...userForm, email: event.target.value })} />
+            <input required minLength="6" type="password" placeholder="Password" value={userForm.password} onChange={(event) => setUserForm({ ...userForm, password: event.target.value })} />
             <button type="submit">Opret bruger</button>
+          </form>
+
+          <h2>Log ind</h2>
+          <form onSubmit={submitLogin}>
+            <input required type="email" placeholder="AU-email" value={loginForm.email} onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })} />
+            <input required type="password" placeholder="Password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} />
+            <button type="submit">Log ind</button>
           </form>
         </section>
 

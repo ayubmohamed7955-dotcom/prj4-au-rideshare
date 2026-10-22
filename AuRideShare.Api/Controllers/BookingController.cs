@@ -1,6 +1,8 @@
 using AuRideShare.Api.Models;
 using AuRideShare.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AuRideShare.Api.Controllers;
 
@@ -10,24 +12,35 @@ public class BookingController : ControllerBase
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly ITurRepository _turRepository;
+    private readonly IBrugerRepository _brugerRepository;
 
-    public BookingController(IBookingRepository bookingRepository, ITurRepository turRepository)
+    public BookingController(
+        IBookingRepository bookingRepository,
+        ITurRepository turRepository,
+        IBrugerRepository brugerRepository)
     {
         _bookingRepository = bookingRepository;
         _turRepository = turRepository;
+        _brugerRepository = brugerRepository;
     }
 
-    // GET /api/bookings
     [HttpGet]
     public ActionResult<IEnumerable<Booking>> HentAlle()
     {
         return Ok(_bookingRepository.HentAlle());
     }
 
-    // POST /api/bookings -> use case "Book tur"
     [HttpPost]
+    [Authorize]
     public ActionResult<Booking> BookTur(OpretBookingRequest request)
     {
+        var brugerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (brugerId != request.PassagerId) return Forbid();
+        if (_brugerRepository.HentPaaId(request.PassagerId) is null)
+        {
+            return BadRequest("Passageren findes ikke.");
+        }
+
         var tur = _turRepository.HentPaaId(request.TurId);
         if (tur is null) return BadRequest("Turen findes ikke.");
         if (tur.AntalLedigeSaeder <= 0) return BadRequest("Der er ikke flere ledige sæder på denne tur.");
@@ -44,12 +57,17 @@ public class BookingController : ControllerBase
         return CreatedAtAction(nameof(HentAlle), oprettetBooking);
     }
 
-    // PATCH /api/bookings/5/accepter -> use case "Betjen tur" (chaufføren accepterer)
     [HttpPatch("{id}/accepter")]
+    [Authorize]
     public IActionResult AccepterBooking(int id)
     {
         var booking = _bookingRepository.HentPaaId(id);
         if (booking is null) return NotFound();
+        if (!ErTurensChauffoer(booking.TurId)) return Forbid();
+        if (booking.Status != BookingStatus.Afventer)
+        {
+            return BadRequest("Bookingen er allerede behandlet.");
+        }
 
         var saedeReserveret = _turRepository.NedsaetLedigeSaeder(booking.TurId);
         if (!saedeReserveret) return BadRequest("Der er ikke flere ledige sæder på turen.");
@@ -58,13 +76,28 @@ public class BookingController : ControllerBase
         return NoContent();
     }
 
-    // PATCH /api/bookings/5/afvis -> use case "Betjen tur" (chaufføren afviser)
     [HttpPatch("{id}/afvis")]
+    [Authorize]
     public IActionResult AfvisBooking(int id)
     {
+        var booking = _bookingRepository.HentPaaId(id);
+        if (booking is null) return NotFound();
+        if (!ErTurensChauffoer(booking.TurId)) return Forbid();
+        if (booking.Status != BookingStatus.Afventer)
+        {
+            return BadRequest("Bookingen er allerede behandlet.");
+        }
+
         var lykkedes = _bookingRepository.OpdaterStatus(id, BookingStatus.Afvist);
         if (!lykkedes) return NotFound();
 
         return NoContent();
+    }
+
+    private bool ErTurensChauffoer(int turId)
+    {
+        var tur = _turRepository.HentPaaId(turId);
+        var brugerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return tur is not null && tur.ChauffoerId == brugerId;
     }
 }

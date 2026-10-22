@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: au-rideshare-api
+    runtime: docker
+    rootDir: AuRideShare.Api
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Key
+        generateValue: true
+      - key: ConnectionStrings__RideShare
+        fromDatabase:
+          name: au-rideshare-db
+          property: connectionString
+
+  - type: web
+    name: au-rideshare-frontend
+    runtime: static
+    rootDir: Frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://au-rideshare-api.onrender.com/api
+
+databases:
+  - name: au-rideshare-db
+    plan: free

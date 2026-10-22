@@ -4,25 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuRideShare.Api.Services;
 
-/// <summary>
-/// Interface for hvordan vi gemmer og henter brugere. Controlleren kender
-/// kun til dette interface - ikke til om data ligger i en liste i
-/// hukommelsen eller i en rigtig database.
-/// </summary>
+/// Lagring af brugere.
 public interface IBrugerRepository
 {
     IEnumerable<Bruger> HentAlle();
     Bruger? HentPaaId(int id);
+    Bruger? HentPaaEmail(string email);
     Bruger Opret(Bruger bruger);
     bool GoerTilChauffoer(int id);
 }
 
-/// <summary>
-/// Midlertidig implementering der gemmer data i en liste i hukommelsen.
-/// Data forsvinder når API'et genstartes - det er meningen på dette
-/// stadie. Udskiftes senere med en implementering der bruger
-/// Entity Framework/MongoDB.
-/// </summary>
+/// Databaseimplementering for brugere.
 public class EfBrugerRepository : IBrugerRepository
 {
     private readonly RideShareDbContext _db;
@@ -32,6 +24,9 @@ public class EfBrugerRepository : IBrugerRepository
     public IEnumerable<Bruger> HentAlle() => _db.Brugere.AsNoTracking().ToList();
 
     public Bruger? HentPaaId(int id) => _db.Brugere.Find(id);
+
+    public Bruger? HentPaaEmail(string email) =>
+        _db.Brugere.FirstOrDefault(b => b.Email == email);
 
     public Bruger Opret(Bruger bruger)
     {

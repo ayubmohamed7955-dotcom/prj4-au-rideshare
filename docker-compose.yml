@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rideshare
+      POSTGRES_USER: rideshare
+      POSTGRES_PASSWORD: rideshare_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - rideshare-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rideshare -d rideshare"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./AuRideShare.Api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__RideShare: Host=postgres;Port=5432;Database=rideshare;Username=rideshare;Password=rideshare_dev
+      Jwt__Key: local-development-key-change-before-production
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./Frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  rideshare-postgres:

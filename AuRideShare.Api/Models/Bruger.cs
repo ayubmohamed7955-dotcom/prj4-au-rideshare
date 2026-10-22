@@ -1,25 +1,22 @@
+using System.Text.Json.Serialization;
+
 namespace AuRideShare.Api.Models;
 
-/// <summary>
-/// Repræsenterer en bruger af systemet. En bruger kan både være passager
-/// og chauffør - ErChauffoer styrer om personen må oprette ture (use case
-/// "Bliv bilist").
-/// </summary>
+/// En bruger kan være passager og chauffør.
 public class Bruger
 {
     public int Id { get; set; }
     public string Navn { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public bool ErChauffoer { get; set; } = false;
+    [JsonIgnore]
+    public string PasswordHash { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Data klienten sender når en ny bruger oprettes ("Opret bruger").
-/// Et separat DTO betyder at klienten ikke selv kan sætte Id eller
-/// ErChauffoer ved oprettelse.
-/// </summary>
+/// Data til oprettelse af en bruger.
 public class OpretBrugerRequest
 {
     public string Navn { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 }

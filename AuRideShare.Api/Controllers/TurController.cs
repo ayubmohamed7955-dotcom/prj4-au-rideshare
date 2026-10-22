@@ -1,6 +1,8 @@
 using AuRideShare.Api.Models;
 using AuRideShare.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AuRideShare.Api.Controllers;
 
@@ -17,14 +19,12 @@ public class TurController : ControllerBase
         _brugerRepository = brugerRepository;
     }
 
-    // GET /api/ture
     [HttpGet]
     public ActionResult<IEnumerable<Tur>> HentAlle()
     {
         return Ok(_turRepository.HentAlle());
     }
 
-    // GET /api/ture/5
     [HttpGet("{id}")]
     public ActionResult<Tur> HentPaaId(int id)
     {
@@ -34,10 +34,13 @@ public class TurController : ControllerBase
         return Ok(tur);
     }
 
-    // POST /api/ture -> use case "Opret tur"
     [HttpPost]
+    [Authorize]
     public ActionResult<Tur> OpretTur(OpretTurRequest request)
     {
+        var brugerId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (brugerId != request.ChauffoerId) return Forbid();
+
         var chauffoer = _brugerRepository.HentPaaId(request.ChauffoerId);
         if (chauffoer is null)
         {

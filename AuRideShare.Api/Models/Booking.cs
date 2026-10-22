@@ -7,10 +7,7 @@ public enum BookingStatus
     Afvist
 }
 
-/// <summary>
-/// En passagers anmodning om et sæde på en given tur ("Book tur").
-/// Status håndteres af chaufføren via "Betjen tur".
-/// </summary>
+/// En passagers booking på en tur.
 public class Booking
 {
     public int Id { get; set; }

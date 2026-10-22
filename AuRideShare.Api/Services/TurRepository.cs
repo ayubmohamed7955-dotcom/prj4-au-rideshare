@@ -29,10 +29,7 @@ public class EfTurRepository : ITurRepository
         return tur;
     }
 
-    /// <summary>
-    /// Trækker ét ledigt sæde fra. Bruges når en booking accepteres.
-    /// Returnerer false hvis der ikke var flere ledige sæder.
-    /// </summary>
+    /// Trækker ét ledigt sæde fra.
     public bool NedsaetLedigeSaeder(int turId)
     {
         var tur = _db.Ture.Find(turId);
