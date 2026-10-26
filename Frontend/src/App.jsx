@@ -14,8 +14,10 @@ async function apiRequest(path, options = {}) {
   const token = localStorage.getItem('rideshareToken')
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
-    headers: { 'Content-Type': 'application/json' },
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    headers: {
+  'Content-Type': 'application/json',
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+},
   })
 
   if (!response.ok) {
@@ -121,10 +123,11 @@ function App() {
       await apiRequest('/ture', {
         method: 'POST',
         body: JSON.stringify({
-          chauffoerId: currentUser.id,
-          ...tripForm,
-          antalLedigeSaeder: Number(tripForm.antalLedigeSaeder),
-        }),
+  chauffoerId: currentUser.id,
+  ...tripForm,
+  afgangsTidspunkt: new Date(tripForm.afgangsTidspunkt).toISOString(),
+  antalLedigeSaeder: Number(tripForm.antalLedigeSaeder),
+}),
       })
       setTripForm({ startLokation: '', slutLokation: '', afgangsTidspunkt: '', antalLedigeSaeder: 3 })
       setMessage('Turen er oprettet.')
