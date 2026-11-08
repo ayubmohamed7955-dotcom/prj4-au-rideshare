@@ -1,0 +1,18 @@
+stages:
+  - build
+
+build_backend:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd AuRideShare.Api
+    - dotnet restore
+    - dotnet build --configuration Release --no-restore
+
+build_frontend:
+  stage: build
+  image: node:20
+  script:
+    - cd Frontend
+    - npm ci
+    - npm run build
