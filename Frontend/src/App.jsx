@@ -48,6 +48,11 @@ function App() {
   const [error, setError] = useState('')
 
   const currentUser = users.find((user) => user.id === Number(currentUserId))
+  
+  // Kun ture der ikke er afgået endnu, sorteret efter afgangstidspunkt.
+  const upcomingTrips = trips
+    .filter((trip) => new Date(trip.afgangsTidspunkt) > new Date())
+    .sort((a, b) => new Date(a.afgangsTidspunkt) - new Date(b.afgangsTidspunkt))
 
   async function loadData() {
     const [loadedUsers, loadedTrips, loadedBookings] = await Promise.all([
@@ -224,7 +229,7 @@ function App() {
             <input required placeholder="Til" value={tripForm.slutLokation} onChange={(event) => setTripForm({ ...tripForm, slutLokation: event.target.value })} />
             <input required type="datetime-local" value={tripForm.afgangsTidspunkt} onChange={(event) => setTripForm({ ...tripForm, afgangsTidspunkt: event.target.value })} />
             <input required min="1" type="number" placeholder="Ledige sæder" value={tripForm.antalLedigeSaeder} onChange={(event) => setTripForm({ ...tripForm, antalLedigeSaeder: event.target.value })} />
-            <MapPicker route={route} onChange={setRoute} />
+            <MapPicker route={route} onChange={setRoute} onNameFound={(field, name) => setTripForm((form) => ({ ...form, [field]: name }))} />
             <button type="submit" disabled={!currentUser?.erChauffoer}>Opret tur</button>
           </form>
           {!currentUser?.erChauffoer && <p className="hint">Vælg en bruger og gør brugeren til chauffør først.</p>}
@@ -238,12 +243,13 @@ function App() {
             </div>
             <button className="secondary" onClick={() => loadData().catch((requestError) => setError(requestError.message))}>Opdater</button>
           </div>
-          <TripsMap trips={trips} />
-          {trips.length === 0 ? <p className="empty">Der er ingen ture endnu.</p> : (
+          <TripsMap trips={upcomingTrips} />
+          <p className="hint">Linjen viser luftlinjen mellem start og slut.</p>
+          {upcomingTrips.length === 0 ? <p className="empty">Der er ingen kommende ture.</p> : (
             <div className="trip-list">
-              {trips.map((trip) => (
+              {upcomingTrips.map((trip, index) => (
                 <article className="trip" key={trip.id}>
-                  <div><strong>{trip.startLokation} → {trip.slutLokation}</strong><span>{new Date(trip.afgangsTidspunkt).toLocaleString('da-DK')}</span></div>
+                  <div><strong>{index + 1}. {trip.startLokation} → {trip.slutLokation}</strong><span>{new Date(trip.afgangsTidspunkt).toLocaleString('da-DK')}</span>{trip.startBredde == null && <span className="badge">Ikke på kortet</span>}</div>
                   <div><span>{trip.antalLedigeSaeder} ledige sæder</span><button onClick={() => bookTrip(trip.id)} disabled={!currentUser}>Book tur</button></div>
                 </article>
               ))}
