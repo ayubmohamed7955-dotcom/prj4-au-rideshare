@@ -250,7 +250,7 @@ function App() {
               {upcomingTrips.map((trip, index) => (
                 <article className="trip" key={trip.id}>
                   <div><strong>{index + 1}. {trip.startLokation} → {trip.slutLokation}</strong><span>{new Date(trip.afgangsTidspunkt).toLocaleString('da-DK')}</span>{trip.startBredde == null && <span className="badge">Ikke på kortet</span>}</div>
-                  <div><span>{trip.antalLedigeSaeder} ledige sæder</span><button onClick={() => bookTrip(trip.id)} disabled={!currentUser}>Book tur</button></div>
+                  <div><span>{trip.antalLedigeSaeder} ledige sæder</span>{currentUser?.id === trip.chauffoerId ? <span>Din tur</span> : <button onClick={() => bookTrip(trip.id)} disabled={!currentUser}>Book tur</button>}</div>
                 </article>
               ))}
             </div>
@@ -259,13 +259,18 @@ function App() {
 
         <section className="panel wide">
           <h2>Bookinger</h2>
-          {bookings.length === 0 ? <p className="empty">Ingen bookinger endnu.</p> : bookings.map((booking) => (
-            <article className="booking" key={booking.id}>
-              <span>Tur #{booking.turId} · Passager #{booking.passagerId}</span>
-              <strong>{bookingStatusLabel(booking.status)}</strong>
-              {(booking.status === 0 || booking.status === 'Afventer') && <div><button onClick={() => updateBooking(booking.id, 'accepter')}>Accepter</button><button className="danger" onClick={() => updateBooking(booking.id, 'afvis')}>Afvis</button></div>}
-            </article>
-          ))}
+          {bookings.length === 0 ? <p className="empty">Ingen bookinger endnu.</p> : bookings.map((booking) => {
+            const trip = trips.find((t) => t.id === booking.turId)
+            const passenger = users.find((user) => user.id === booking.passagerId)
+            const isDriver = currentUser && trip?.chauffoerId === currentUser.id
+            return (
+              <article className="booking" key={booking.id}>
+                <span>{trip ? `${trip.startLokation} → ${trip.slutLokation}` : `Tur #${booking.turId}`} · Passager: {passenger?.navn ?? `#${booking.passagerId}`}</span>
+                <strong>{bookingStatusLabel(booking.status)}</strong>
+                {isDriver && (booking.status === 0 || booking.status === 'Afventer') && <div><button onClick={() => updateBooking(booking.id, 'accepter')}>Accepter</button><button className="danger" onClick={() => updateBooking(booking.id, 'afvis')}>Afvis</button></div>}
+              </article>
+            )
+          })}
         </section>
       </main>
     </div>
