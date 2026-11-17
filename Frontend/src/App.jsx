@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import MapPicker from './MapPicker.jsx'
+import TripsMap from './TripsMap.jsx'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'
 
@@ -33,7 +35,7 @@ function App() {
   const [trips, setTrips] = useState([])
   const [bookings, setBookings] = useState([])
   const [currentUserId, setCurrentUserId] = useState('')
-  const [userForm, setUserForm] = useState({ navn: '', email: '' })
+  const [userForm, setUserForm] = useState({ navn: '', email: '', password: '' })
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [tripForm, setTripForm] = useState({
     startLokation: '',
@@ -41,6 +43,7 @@ function App() {
     afgangsTidspunkt: '',
     antalLedigeSaeder: 3,
   })
+  const [route, setRoute] = useState({ start: null, slut: null })
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -73,7 +76,7 @@ function App() {
         body: JSON.stringify(userForm),
       })
       await login(userForm.email, userForm.password)
-      setUserForm({ navn: '', email: '' })
+      setUserForm({ navn: '', email: '', password: '' })
       setMessage(`Bruger ${user.navn} er oprettet.`)
       await loadData()
     } catch (requestError) {
@@ -123,13 +126,18 @@ function App() {
       await apiRequest('/ture', {
         method: 'POST',
         body: JSON.stringify({
-  chauffoerId: currentUser.id,
-  ...tripForm,
-  afgangsTidspunkt: new Date(tripForm.afgangsTidspunkt).toISOString(),
-  antalLedigeSaeder: Number(tripForm.antalLedigeSaeder),
-}),
+          chauffoerId: currentUser.id,
+          ...tripForm,
+          startBredde: route.start?.lat ?? null,
+          startLaengde: route.start?.lng ?? null,
+          slutBredde: route.slut?.lat ?? null,
+          slutLaengde: route.slut?.lng ?? null,
+          afgangsTidspunkt: new Date(tripForm.afgangsTidspunkt).toISOString(),
+          antalLedigeSaeder: Number(tripForm.antalLedigeSaeder),
+        }),
       })
       setTripForm({ startLokation: '', slutLokation: '', afgangsTidspunkt: '', antalLedigeSaeder: 3 })
+      setRoute({ start: null, slut: null })
       setMessage('Turen er oprettet.')
       await loadData()
     } catch (requestError) {
@@ -168,7 +176,7 @@ function App() {
       <header className="hero">
         <p className="eyebrow">AU RideShare · MVP</p>
         <h1>Find et lift. Giv et lift.</h1>
-        <p>En enkel demo af bruger-, tur- og booking-flowet med data fra backendens SQLite-database.</p>
+        <p>En enkel demo af bruger-, tur- og booking-flowet med data fra backendens PostgreSQL-database.</p>
       </header>
 
       {message && <div className="notice success">{message}</div>}
@@ -216,6 +224,7 @@ function App() {
             <input required placeholder="Til" value={tripForm.slutLokation} onChange={(event) => setTripForm({ ...tripForm, slutLokation: event.target.value })} />
             <input required type="datetime-local" value={tripForm.afgangsTidspunkt} onChange={(event) => setTripForm({ ...tripForm, afgangsTidspunkt: event.target.value })} />
             <input required min="1" type="number" placeholder="Ledige sæder" value={tripForm.antalLedigeSaeder} onChange={(event) => setTripForm({ ...tripForm, antalLedigeSaeder: event.target.value })} />
+            <MapPicker route={route} onChange={setRoute} />
             <button type="submit" disabled={!currentUser?.erChauffoer}>Opret tur</button>
           </form>
           {!currentUser?.erChauffoer && <p className="hint">Vælg en bruger og gør brugeren til chauffør først.</p>}
@@ -229,6 +238,7 @@ function App() {
             </div>
             <button className="secondary" onClick={() => loadData().catch((requestError) => setError(requestError.message))}>Opdater</button>
           </div>
+          <TripsMap trips={trips} />
           {trips.length === 0 ? <p className="empty">Der er ingen ture endnu.</p> : (
             <div className="trip-list">
               {trips.map((trip) => (

@@ -1,4 +1,4 @@
-.app-shell { max-width: 1120px; margin: 0 auto; padding: 44px 24px 72px; }
+.app-shell { width: 100%; box-sizing: border-box; max-width: 1120px; margin: 0 auto; padding: 44px 24px 72px; }
 .hero { padding: 28px 0 36px; max-width: 720px; }
 .hero h1 { margin: 8px 0 12px; font-size: clamp(2.5rem, 7vw, 5rem); line-height: .95; }
 .hero h1, .panel h2 { color: #111111; }
@@ -29,3 +29,5 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .success { background: #e4f2e5; color: #246130; }
 .error { background: #fbe7e3; color: #8b3026; }
 @media (max-width: 720px) { .app-shell { padding: 24px 16px 48px; } .layout { grid-template-columns: 1fr; } .wide { grid-column: auto; } .trip, .section-heading { align-items: flex-start; flex-direction: column; } .trip div:last-child { width: 100%; justify-content: space-between; } }
+/* Kort */
+.map { height: 320px; width: 100%; border-radius: 5px; border: 1px solid #c9c2b5; margin-bottom: 8px; }
