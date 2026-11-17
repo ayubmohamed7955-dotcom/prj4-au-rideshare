@@ -1,58 +1,21 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import MapPicker from './MapPicker.jsx'
-import TripsMap from './TripsMap.jsx'
+import { apiRequest } from './api.js'
+import UserPanel from './components/UserPanel.jsx'
+import TripForm from './components/TripForm.jsx'
+import TripList from './components/TripList.jsx'
+import BookingList from './components/BookingList.jsx'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'
-
-function bookingStatusLabel(status) {
-  if (status === 0 || status === 'Afventer') return 'Afventer'
-  if (status === 1 || status === 'Accepteret') return 'Accepteret'
-  if (status === 2 || status === 'Afvist') return 'Afvist'
-  return String(status)
-}
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem('rideshareToken')
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-  'Content-Type': 'application/json',
-  ...(token ? { Authorization: `Bearer ${token}` } : {}),
-},
-  })
-
-  if (!response.ok) {
-    const message = await response.text()
-    throw new Error(message || `Request fejlede (${response.status})`)
-  }
-
-  return response.status === 204 ? null : response.json()
-}
-
+// App holder data og kalder backend. Selve visningen ligger i components/.
 function App() {
   const [users, setUsers] = useState([])
   const [trips, setTrips] = useState([])
   const [bookings, setBookings] = useState([])
   const [currentUserId, setCurrentUserId] = useState('')
-  const [userForm, setUserForm] = useState({ navn: '', email: '', password: '' })
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [tripForm, setTripForm] = useState({
-    startLokation: '',
-    slutLokation: '',
-    afgangsTidspunkt: '',
-    antalLedigeSaeder: 3,
-  })
-  const [route, setRoute] = useState({ start: null, slut: null })
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
   const currentUser = users.find((user) => user.id === Number(currentUserId))
-  
-  // Kun ture der ikke er afgået endnu, sorteret efter afgangstidspunkt.
-  const upcomingTrips = trips
-    .filter((trip) => new Date(trip.afgangsTidspunkt) > new Date())
-    .sort((a, b) => new Date(a.afgangsTidspunkt) - new Date(b.afgangsTidspunkt))
 
   async function loadData() {
     const [loadedUsers, loadedTrips, loadedBookings] = await Promise.all([
@@ -72,21 +35,8 @@ function App() {
     loadData().catch((requestError) => setError(requestError.message))
   }, [])
 
-  async function createUser(event) {
-    event.preventDefault()
-    setError('')
-    try {
-      const user = await apiRequest('/brugere', {
-        method: 'POST',
-        body: JSON.stringify(userForm),
-      })
-      await login(userForm.email, userForm.password)
-      setUserForm({ navn: '', email: '', password: '' })
-      setMessage(`Bruger ${user.navn} er oprettet.`)
-      await loadData()
-    } catch (requestError) {
-      setError(requestError.message)
-    }
+  function refresh() {
+    loadData().catch((requestError) => setError(requestError.message))
   }
 
   async function login(email, password) {
@@ -96,18 +46,52 @@ function App() {
     })
     localStorage.setItem('rideshareToken', response.token)
     setCurrentUserId(String(response.user.id))
-    setLoginForm({ email: '', password: '' })
     await loadData()
   }
 
-  async function submitLogin(event) {
-    event.preventDefault()
+  // De fire funktioner herunder returnerer true, hvis det lykkedes.
+  async function createUser(form) {
     setError('')
     try {
-      await login(loginForm.email, loginForm.password)
-      setMessage('Du er logget ind.')
+      const user = await apiRequest('/brugere', {
+        method: 'POST',
+        body: JSON.stringify(form),
+      })
+      await login(form.email, form.password)
+      setMessage(`Bruger ${user.navn} er oprettet.`)
+      await loadData()
+      return true
     } catch (requestError) {
       setError(requestError.message)
+      return false
+    }
+  }
+
+  async function submitLogin(email, password) {
+    setError('')
+    try {
+      await login(email, password)
+      setMessage('Du er logget ind.')
+      return true
+    } catch (requestError) {
+      setError(requestError.message)
+      return false
+    }
+  }
+
+  async function createTrip(tripData) {
+    setError('')
+    try {
+      await apiRequest('/ture', {
+        method: 'POST',
+        body: JSON.stringify(tripData),
+      })
+      setMessage('Turen er oprettet.')
+      await loadData()
+      return true
+    } catch (requestError) {
+      setError(requestError.message)
+      return false
     }
   }
 
@@ -117,33 +101,6 @@ function App() {
     try {
       await apiRequest(`/brugere/${currentUser.id}/bliv-chauffoer`, { method: 'PATCH' })
       setMessage('Brugeren er nu chauffør.')
-      await loadData()
-    } catch (requestError) {
-      setError(requestError.message)
-    }
-  }
-
-  async function createTrip(event) {
-    event.preventDefault()
-    if (!currentUser) return
-    setError('')
-    try {
-      await apiRequest('/ture', {
-        method: 'POST',
-        body: JSON.stringify({
-          chauffoerId: currentUser.id,
-          ...tripForm,
-          startBredde: route.start?.lat ?? null,
-          startLaengde: route.start?.lng ?? null,
-          slutBredde: route.slut?.lat ?? null,
-          slutLaengde: route.slut?.lng ?? null,
-          afgangsTidspunkt: new Date(tripForm.afgangsTidspunkt).toISOString(),
-          antalLedigeSaeder: Number(tripForm.antalLedigeSaeder),
-        }),
-      })
-      setTripForm({ startLokation: '', slutLokation: '', afgangsTidspunkt: '', antalLedigeSaeder: 3 })
-      setRoute({ start: null, slut: null })
-      setMessage('Turen er oprettet.')
       await loadData()
     } catch (requestError) {
       setError(requestError.message)
@@ -188,90 +145,18 @@ function App() {
       {error && <div className="notice error">{error}</div>}
 
       <main className="layout">
-        <section className="panel">
-          <h2>Aktiv bruger</h2>
-          <select value={currentUserId} onChange={(event) => setCurrentUserId(event.target.value)}>
-            <option value="">Vælg bruger</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.navn} · {user.erChauffoer ? 'chauffør' : 'passager'}
-              </option>
-            ))}
-          </select>
-          {currentUser && (
-            <div className="user-summary">
-              <strong>{currentUser.navn}</strong>
-              <span>{currentUser.email}</span>
-              {!currentUser.erChauffoer && <button onClick={becomeDriver}>Bliv chauffør</button>}
-            </div>
-          )}
-
-          <h2>Opret bruger</h2>
-          <form onSubmit={createUser}>
-            <input required placeholder="Navn" value={userForm.navn} onChange={(event) => setUserForm({ ...userForm, navn: event.target.value })} />
-            <input required type="email" placeholder="AU-email" value={userForm.email} onChange={(event) => setUserForm({ ...userForm, email: event.target.value })} />
-            <input required minLength="6" type="password" placeholder="Password" value={userForm.password} onChange={(event) => setUserForm({ ...userForm, password: event.target.value })} />
-            <button type="submit">Opret bruger</button>
-          </form>
-
-          <h2>Log ind</h2>
-          <form onSubmit={submitLogin}>
-            <input required type="email" placeholder="AU-email" value={loginForm.email} onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })} />
-            <input required type="password" placeholder="Password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} />
-            <button type="submit">Log ind</button>
-          </form>
-        </section>
-
-        <section className="panel">
-          <h2>Opret en tur</h2>
-          <form onSubmit={createTrip}>
-            <input required placeholder="Fra" value={tripForm.startLokation} onChange={(event) => setTripForm({ ...tripForm, startLokation: event.target.value })} />
-            <input required placeholder="Til" value={tripForm.slutLokation} onChange={(event) => setTripForm({ ...tripForm, slutLokation: event.target.value })} />
-            <input required type="datetime-local" value={tripForm.afgangsTidspunkt} onChange={(event) => setTripForm({ ...tripForm, afgangsTidspunkt: event.target.value })} />
-            <input required min="1" type="number" placeholder="Ledige sæder" value={tripForm.antalLedigeSaeder} onChange={(event) => setTripForm({ ...tripForm, antalLedigeSaeder: event.target.value })} />
-            <MapPicker route={route} onChange={setRoute} onNameFound={(field, name) => setTripForm((form) => ({ ...form, [field]: name }))} />
-            <button type="submit" disabled={!currentUser?.erChauffoer}>Opret tur</button>
-          </form>
-          {!currentUser?.erChauffoer && <p className="hint">Vælg en bruger og gør brugeren til chauffør først.</p>}
-        </section>
-
-        <section className="panel wide">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Live fra API'et</p>
-              <h2>Ledige ture</h2>
-            </div>
-            <button className="secondary" onClick={() => loadData().catch((requestError) => setError(requestError.message))}>Opdater</button>
-          </div>
-          <TripsMap trips={upcomingTrips} />
-          <p className="hint">Linjen viser luftlinjen mellem start og slut.</p>
-          {upcomingTrips.length === 0 ? <p className="empty">Der er ingen kommende ture.</p> : (
-            <div className="trip-list">
-              {upcomingTrips.map((trip, index) => (
-                <article className="trip" key={trip.id}>
-                  <div><strong>{index + 1}. {trip.startLokation} → {trip.slutLokation}</strong><span>{new Date(trip.afgangsTidspunkt).toLocaleString('da-DK')}</span>{trip.startBredde == null && <span className="badge">Ikke på kortet</span>}</div>
-                  <div><span>{trip.antalLedigeSaeder} ledige sæder</span>{currentUser?.id === trip.chauffoerId ? <span>Din tur</span> : <button onClick={() => bookTrip(trip.id)} disabled={!currentUser}>Book tur</button>}</div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="panel wide">
-          <h2>Bookinger</h2>
-          {bookings.length === 0 ? <p className="empty">Ingen bookinger endnu.</p> : bookings.map((booking) => {
-            const trip = trips.find((t) => t.id === booking.turId)
-            const passenger = users.find((user) => user.id === booking.passagerId)
-            const isDriver = currentUser && trip?.chauffoerId === currentUser.id
-            return (
-              <article className="booking" key={booking.id}>
-                <span>{trip ? `${trip.startLokation} → ${trip.slutLokation}` : `Tur #${booking.turId}`} · Passager: {passenger?.navn ?? `#${booking.passagerId}`}</span>
-                <strong>{bookingStatusLabel(booking.status)}</strong>
-                {isDriver && (booking.status === 0 || booking.status === 'Afventer') && <div><button onClick={() => updateBooking(booking.id, 'accepter')}>Accepter</button><button className="danger" onClick={() => updateBooking(booking.id, 'afvis')}>Afvis</button></div>}
-              </article>
-            )
-          })}
-        </section>
+        <UserPanel
+          users={users}
+          currentUserId={currentUserId}
+          currentUser={currentUser}
+          onSelectUser={setCurrentUserId}
+          onBecomeDriver={becomeDriver}
+          onCreateUser={createUser}
+          onLogin={submitLogin}
+        />
+        <TripForm currentUser={currentUser} onCreateTrip={createTrip} />
+        <TripList trips={trips} currentUser={currentUser} onBook={bookTrip} onRefresh={refresh} />
+        <BookingList bookings={bookings} trips={trips} users={users} currentUser={currentUser} onUpdate={updateBooking} />
       </main>
     </div>
   )
