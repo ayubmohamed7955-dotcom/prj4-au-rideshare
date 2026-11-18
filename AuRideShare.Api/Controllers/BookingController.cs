@@ -45,6 +45,10 @@ public class BookingController : ControllerBase
         if (tur is null) return BadRequest("Turen findes ikke.");
         if (tur.AntalLedigeSaeder <= 0) return BadRequest("Der er ikke flere ledige sæder på denne tur.");
         if (tur.ChauffoerId == request.PassagerId) return BadRequest("Du kan ikke booke din egen tur.");
+        if (_bookingRepository.HarAktivBooking(request.TurId, request.PassagerId))
+        {
+            return BadRequest("Du har allerede booket denne tur.");
+        }
 
         var booking = new Booking
         {
