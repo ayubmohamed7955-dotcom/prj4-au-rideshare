@@ -89,9 +89,21 @@ namespace AuRideShare.Api.Migrations
                     b.Property<int>("ChauffoerId")
                         .HasColumnType("integer");
 
+                    b.Property<double?>("SlutBredde")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("SlutLaengde")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("SlutLokation")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double?>("StartBredde")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("StartLaengde")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("StartLokation")
                         .IsRequired()

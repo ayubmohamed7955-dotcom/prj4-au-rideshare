@@ -60,6 +60,10 @@ public class TurController : ControllerBase
             ChauffoerId = request.ChauffoerId,
             StartLokation = request.StartLokation,
             SlutLokation = request.SlutLokation,
+            StartBredde = request.StartBredde,
+            StartLaengde = request.StartLaengde,
+            SlutBredde = request.SlutBredde,
+            SlutLaengde = request.SlutLaengde,
             AfgangsTidspunkt = request.AfgangsTidspunkt,
             AntalLedigeSaeder = request.AntalLedigeSaeder
         };

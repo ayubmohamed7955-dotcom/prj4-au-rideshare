@@ -7,6 +7,10 @@ public class Tur
     public int ChauffoerId { get; set; }
     public string StartLokation { get; set; } = string.Empty;
     public string SlutLokation { get; set; } = string.Empty;
+    public double? StartBredde { get; set; }
+    public double? StartLaengde { get; set; }
+    public double? SlutBredde { get; set; }
+    public double? SlutLaengde { get; set; }
     public DateTime AfgangsTidspunkt { get; set; }
     public int AntalLedigeSaeder { get; set; }
 }
@@ -16,6 +20,10 @@ public class OpretTurRequest
     public int ChauffoerId { get; set; }
     public string StartLokation { get; set; } = string.Empty;
     public string SlutLokation { get; set; } = string.Empty;
+    public double? StartBredde { get; set; }
+    public double? StartLaengde { get; set; }
+    public double? SlutBredde { get; set; }
+    public double? SlutLaengde { get; set; }
     public DateTime AfgangsTidspunkt { get; set; }
     public int AntalLedigeSaeder { get; set; }
 }
