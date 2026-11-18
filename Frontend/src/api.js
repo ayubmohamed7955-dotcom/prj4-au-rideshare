@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api'
 
 // Alle kald til backend går herigennem. Sender login-tokenet med, hvis det findes.
+// Ved fejl kastes en Error med statuskoden i error.status (fx 401 = ikke logget ind).
 export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem('rideshareToken')
   const response = await fetch(`${API_URL}${path}`, {
@@ -13,7 +14,9 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     const message = await response.text()
-    throw new Error(message || `Request fejlede (${response.status})`)
+    const error = new Error(message || `Request fejlede (${response.status})`)
+    error.status = response.status
+    throw error
   }
 
   return response.status === 204 ? null : response.json()

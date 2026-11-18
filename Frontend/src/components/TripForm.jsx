@@ -5,7 +5,7 @@ const emptyTrip = { startLokation: '', slutLokation: '', afgangsTidspunkt: '', a
 const emptyRoute = { start: null, slut: null }
 
 // Formular til at oprette en tur, med kort til at vælge start og slut.
-function TripForm({ currentUser, onCreateTrip }) {
+function TripForm({ currentUser, onCreateTrip, onBecomeDriver }) {
   const [tripForm, setTripForm] = useState(emptyTrip)
   const [route, setRoute] = useState(emptyRoute)
 
@@ -29,7 +29,7 @@ function TripForm({ currentUser, onCreateTrip }) {
   }
 
   return (
-    <section className="panel">
+    <section className="panel narrow">
       <h2>Opret en tur</h2>
       <form onSubmit={submit}>
         <input required placeholder="Fra" value={tripForm.startLokation} onChange={(event) => setTripForm({ ...tripForm, startLokation: event.target.value })} />
@@ -39,7 +39,12 @@ function TripForm({ currentUser, onCreateTrip }) {
         <MapPicker route={route} onChange={setRoute} onNameFound={(field, name) => setTripForm((form) => ({ ...form, [field]: name }))} />
         <button type="submit" disabled={!currentUser?.erChauffoer}>Opret tur</button>
       </form>
-      {!currentUser?.erChauffoer && <p className="hint">Vælg en bruger og gør brugeren til chauffør først.</p>}
+      {currentUser && !currentUser.erChauffoer && (
+        <>
+          <p className="hint">Du skal være chauffør for at oprette ture.</p>
+          <button onClick={onBecomeDriver}>Bliv chauffør</button>
+        </>
+      )}
     </section>
   )
 }
