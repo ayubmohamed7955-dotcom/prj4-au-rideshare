@@ -20,7 +20,7 @@ function LoginPage({ notice, onLogin, onCreateUser }) {
     <>
       {notice && <div className="notice error wide">{notice}</div>}
 
-      <section className="panel">
+      <section className="panel login-panel">
         <h2>Log ind</h2>
         <form onSubmit={submitLogin}>
           <input required type="email" placeholder="AU-email" value={loginForm.email} onChange={(event) => setLoginForm({ ...loginForm, email: event.target.value })} />
@@ -29,7 +29,7 @@ function LoginPage({ notice, onLogin, onCreateUser }) {
         </form>
       </section>
 
-      <section className="panel">
+      <section className="panel login-panel">
         <h2>Opret bruger</h2>
         <form onSubmit={submitCreateUser}>
           <input required placeholder="Navn" value={userForm.navn} onChange={(event) => setUserForm({ ...userForm, navn: event.target.value })} />
